@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stitch — The Future of Financial Infrastructure</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=DM+Sans:wght@300;400;500&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #080a0e;
+    --deep: #0d1117;
+    --card: #111720;
+    --border: rgba(255,255,255,0.07);
+    --gold: #c9a84c;
+    --gold-light: #e8c97a;
+    --gold-dim: rgba(201,168,76,0.15);
+    --white: #f0ede8;
+    --muted: rgba(240,237,232,0.45);
+    --accent: #1a2540;
+  }
+
+  *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+    cursor: default;
+  }
+
+  /* NOISE OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.6;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 1.4rem 3.5rem;
+    z-index: 100;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.4s, background 0.4s, backdrop-filter 0.4s;
+  }
+  nav.scrolled {
+    border-color: var(--border);
+    background: rgba(8,10,14,0.85);
+    backdrop-filter: blur(20px);
+  }
+  .nav-logo {
+    display: flex; align-items: center; gap: 0.6rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--white); text-decoration: none;
+  }
+  .nav-logo span { color: var(--gold); }
+  .nav-links { display: flex; gap: 2.2rem; list-style: none; }
+  .nav-links a {
+    color: var(--muted); text-decoration: none;
+    font-size: 0.82rem; letter-spacing: 0.06em; text-transform: uppercase;
+    transition: color 0.3s;
+  }
+  .nav-links a:hover { color: var(--white); }
+  .nav-cta {
+    background: var(--gold); color: #080a0e;
+    padding: 0.6rem 1.4rem; border-radius: 2px;
+    font-size: 0.78rem; font-weight: 500; letter-spacing: 0.08em;
+    text-transform: uppercase; text-decoration: none;
+    transition: background 0.3s, transform 0.2s;
+  }
+  .nav-cta:hover { background: var(--gold-light); transform: translateY(-1px); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    text-align: center;
+    padding: 8rem 2rem 4rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-bg {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(201,168,76,0.12) 0%, transparent 60%),
+      radial-gradient(ellipse 60% 40% at 80% 100%, rgba(26,37,64,0.6) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 10% 80%, rgba(201,168,76,0.05) 0%, transparent 50%);
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(201,168,76,0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(201,168,76,0.04) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 80%);
+  }
+  .hero-eyebrow {
+    display: inline-flex; align-items: center; gap: 0.6rem;
+    background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.25);
+    padding: 0.4rem 1rem; border-radius: 100px;
+    font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 2rem;
+    opacity: 0; animation: fadeUp 0.8s 0.2s forwards;
+  }
+  .hero-eyebrow::before {
+    content: ''; width: 6px; height: 6px;
+    background: var(--gold); border-radius: 50%;
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%,100% { opacity:1; transform:scale(1); }
+    50% { opacity:0.4; transform:scale(0.7); }
+  }
+  .hero h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(3.5rem, 8vw, 7.5rem);
+    font-weight: 300; line-height: 1.05;
+    letter-spacing: -0.01em;
+    max-width: 900px;
+    opacity: 0; animation: fadeUp 0.9s 0.4s forwards;
+  }
+  .hero h1 em {
+    font-style: italic; color: var(--gold);
+  }
+  .hero-sub {
+    max-width: 560px; margin: 2rem auto 0;
+    font-size: 1rem; line-height: 1.8;
+    color: var(--muted);
+    opacity: 0; animation: fadeUp 0.9s 0.6s forwards;
+  }
+  .hero-actions {
+    display: flex; gap: 1rem; margin-top: 2.5rem; flex-wrap: wrap; justify-content: center;
+    opacity: 0; animation: fadeUp 0.9s 0.8s forwards;
+  }
+  .btn-primary {
+    background: var(--gold); color: #080a0e;
+    padding: 0.85rem 2rem; border-radius: 2px;
+    font-size: 0.82rem; font-weight: 500; letter-spacing: 0.08em;
+    text-transform: uppercase; text-decoration: none;
+    transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+  }
+  .btn-primary:hover {
+    background: var(--gold-light); transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(201,168,76,0.3);
+  }
+  .btn-outline {
+    border: 1px solid var(--border); color: var(--white);
+    padding: 0.85rem 2rem; border-radius: 2px;
+    font-size: 0.82rem; letter-spacing: 0.08em;
+    text-transform: uppercase; text-decoration: none;
+    transition: border-color 0.3s, transform 0.2s;
+  }
+  .btn-outline:hover { border-color: var(--gold); transform: translateY(-2px); }
+
+  .hero-stats {
+    display: flex; gap: 3rem; margin-top: 5rem; flex-wrap: wrap; justify-content: center;
+    opacity: 0; animation: fadeUp 0.9s 1s forwards;
+  }
+  .stat { text-align: center; }
+  .stat-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 2.8rem; font-weight: 300; color: var(--gold);
+    line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.72rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--muted); margin-top: 0.3rem;
+  }
+
+  @keyframes fadeUp {
+    from { opacity:0; transform:translateY(24px); }
+    to { opacity:1; transform:translateY(0); }
+  }
+
+  /* SECTION BASE */
+  section { padding: 7rem 3.5rem; max-width: 1200px; margin: 0 auto; }
+  .section-full { max-width: 100%; padding: 7rem 0; }
+
+  .section-label {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    font-size: 0.7rem; letter-spacing: 0.15em; text-transform: uppercase;
+    color: var(--gold); margin-bottom: 1.2rem;
+  }
+  .section-label::before {
+    content: ''; display: inline-block;
+    width: 24px; height: 1px; background: var(--gold);
+  }
+  .section-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.2rem, 4vw, 3.5rem);
+    font-weight: 300; line-height: 1.15;
+  }
+  .section-title em { font-style: italic; color: var(--gold); }
+  .section-sub {
+    max-width: 560px; font-size: 0.95rem; line-height: 1.8;
+    color: var(--muted); margin-top: 1rem;
+  }
+
+  /* DIVIDER */
+  .divider {
+    width: 100%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--border) 30%, var(--border) 70%, transparent);
+    margin: 0 3.5rem;
+  }
+
+  /* WHAT IS STITCH */
+  .what-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 5rem; align-items: center; margin-top: 4rem;
+  }
+  .what-visual {
+    position: relative; height: 420px;
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 4px; overflow: hidden;
+  }
+  .what-visual::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse at 30% 40%, rgba(201,168,76,0.12) 0%, transparent 60%);
+  }
+  .platform-diagram {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column;
+    justify-content: center; align-items: center;
+    gap: 0;
+    padding: 2rem;
+  }
+  .platform-core {
+    background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.4);
+    border-radius: 3px; padding: 1rem 2.5rem;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.2rem; color: var(--gold);
+    text-align: center; z-index: 2;
+  }
+  .platform-row {
+    display: flex; gap: 0.5rem; width: 100%;
+    justify-content: center; flex-wrap: wrap;
+    margin: 0.5rem 0;
+  }
+  .platform-chip {
+    background: rgba(255,255,255,0.04); border: 1px solid var(--border);
+    border-radius: 2px; padding: 0.4rem 0.9rem;
+    font-size: 0.72rem; letter-spacing: 0.06em;
+    color: var(--muted); white-space: nowrap;
+    transition: all 0.3s;
+  }
+  .platform-chip:hover {
+    background: var(--gold-dim); border-color: rgba(201,168,76,0.3);
+    color: var(--gold);
+  }
+  .platform-line {
+    width: 1px; height: 20px;
+    background: linear-gradient(to bottom, var(--gold), transparent);
+    margin: 0 auto;
+  }
+
+  .what-points { display: flex; flex-direction: column; gap: 1.8rem; margin-top: 2.5rem; }
+  .what-point { display: flex; gap: 1rem; }
+  .what-point-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.7rem; color: var(--gold); opacity: 0.6;
+    min-width: 24px; padding-top: 0.1rem;
+  }
+  .what-point-text h4 { font-size: 0.95rem; font-weight: 500; margin-bottom: 0.3rem; }
+  .what-point-text p { font-size: 0.85rem; color: var(--muted); line-height: 1.7; }
+
+  /* SOLUTIONS */
+  .solutions-bg {
+    background: var(--deep);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 7rem 0;
+  }
+  .solutions-inner { max-width: 1200px; margin: 0 auto; padding: 0 3.5rem; }
+  .solutions-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1px; background: var(--border);
+    border: 1px solid var(--border); border-radius: 4px;
+    overflow: hidden; margin-top: 4rem;
+  }
+  .sol-card {
+    background: var(--card); padding: 2.2rem;
+    position: relative; overflow: hidden;
+    transition: background 0.3s;
+    cursor: default;
+  }
+  .sol-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .sol-card:hover { background: #151e2e; }
+  .sol-card:hover::before { opacity: 1; }
+  .sol-icon {
+    width: 40px; height: 40px;
+    background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.2);
+    border-radius: 3px; display: flex; align-items: center; justify-content: center;
+    font-size: 1.1rem; margin-bottom: 1.4rem;
+  }
+  .sol-card h3 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.3rem; font-weight: 400; margin-bottom: 0.7rem;
+  }
+  .sol-card p { font-size: 0.83rem; color: var(--muted); line-height: 1.7; }
+  .sol-tag {
+    display: inline-block; margin-top: 1.2rem;
+    font-size: 0.68rem; letter-spacing: 0.1em; text-transform: uppercase;
+    color: var(--gold); opacity: 0.7;
+  }
+
+  /* USE CASES */
+  .usecases-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem; margin-top: 4rem;
+  }
+  .uc-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 4px; padding: 2rem 2.2rem;
+    display: flex; gap: 1.5rem; align-items: flex-start;
+    transition: border-color 0.3s, transform 0.3s;
+    position: relative; overflow: hidden;
+  }
+  .uc-card::after {
+    content: ''; position: absolute;
+    bottom: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    opacity: 0; transition: opacity 0.3s;
+  }
+  .uc-card:hover { border-color: rgba(201,168,76,0.2); transform: translateY(-3px); }
+  .uc-card:hover::after { opacity: 1; }
+  .uc-icon {
+    font-size: 1.6rem; min-width: 44px; height: 44px;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--gold-dim); border-radius: 3px;
+  }
+  .uc-content h4 { font-size: 1rem; font-weight: 500; margin-bottom: 0.5rem; }
+  .uc-content p { font-size: 0.83rem; color: var(--muted); line-height: 1.7; }
+
+  /* WHY STITCH */
+  .why-bg {
+    background: linear-gradient(180deg, var(--black) 0%, rgba(201,168,76,0.03) 50%, var(--black) 100%);
+    padding: 7rem 0;
+  }
+  .why-inner { max-width: 1200px; margin: 0 auto; padding: 0 3.5rem; }
+  .why-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 2rem; margin-top: 4rem;
+  }
+  .why-card {
+    text-align: center; padding: 2rem 1.5rem;
+    border: 1px solid var(--border); border-radius: 4px;
+    background: var(--card);
+    transition: border-color 0.3s;
+  }
+  .why-card:hover { border-color: rgba(201,168,76,0.25); }
+  .why-num {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3rem; font-weight: 300; color: var(--gold);
+    line-height: 1; margin-bottom: 0.5rem;
+  }
+  .why-card h4 { font-size: 0.92rem; font-weight: 500; margin-bottom: 0.5rem; }
+  .why-card p { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
+
+  /* MARKET */
+  .market-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 4rem; align-items: center; margin-top: 4rem;
+  }
+  .region-list { display: flex; flex-direction: column; gap: 0; }
+  .region-item {
+    display: flex; align-items: center; gap: 1.2rem;
+    padding: 1.1rem 0; border-bottom: 1px solid var(--border);
+    transition: padding-left 0.3s;
+    cursor: default;
+  }
+  .region-item:hover { padding-left: 0.5rem; }
+  .region-flag { font-size: 1.4rem; }
+  .region-name { font-size: 0.92rem; font-weight: 500; flex: 1; }
+  .region-desc { font-size: 0.78rem; color: var(--muted); }
+  .region-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--gold); opacity: 0.6;
+  }
+
+  .compliance-box {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 4px; padding: 2.2rem;
+  }
+  .compliance-box h4 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.4rem; margin-bottom: 1.5rem;
+  }
+  .compliance-items { display: flex; flex-direction: column; gap: 1rem; }
+  .compliance-item { display: flex; gap: 0.8rem; }
+  .ci-check {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.6rem; color: var(--gold); flex-shrink: 0; margin-top: 0.1rem;
+  }
+  .compliance-item p { font-size: 0.83rem; color: var(--muted); line-height: 1.6; }
+
+  /* HOW IT WORKS */
+  .steps-track {
+    position: relative; margin-top: 4rem;
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 0;
+  }
+  .steps-track::before {
+    content: ''; position: absolute;
+    top: 28px; left: 10%; right: 10%; height: 1px;
+    background: linear-gradient(90deg, transparent, var(--gold), var(--gold), transparent);
+    opacity: 0.3;
+  }
+  .step-item { text-align: center; padding: 0 1rem; position: relative; }
+  .step-circle {
+    width: 56px; height: 56px; border-radius: 50%;
+    border: 1px solid rgba(201,168,76,0.4);
+    background: var(--card); display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1.2rem;
+    font-family: 'DM Mono', monospace; font-size: 0.8rem; color: var(--gold);
+    position: relative; z-index: 2;
+    transition: background 0.3s;
+  }
+  .step-item:hover .step-circle { background: var(--gold-dim); }
+  .step-item h4 { font-size: 0.85rem; font-weight: 500; margin-bottom: 0.4rem; }
+  .step-item p { font-size: 0.75rem; color: var(--muted); line-height: 1.5; }
+
+  /* TESTIMONIALS */
+  .testimonials-bg {
+    background: var(--deep);
+    border-top: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    padding: 7rem 0;
+  }
+  .testimonials-inner { max-width: 1200px; margin: 0 auto; padding: 0 3.5rem; }
+  .testimonials-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem; margin-top: 4rem;
+  }
+  .testi-card {
+    background: var(--card); border: 1px solid var(--border);
+    border-radius: 4px; padding: 2rem;
+    position: relative;
+  }
+  .testi-quote {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 3rem; color: var(--gold); opacity: 0.3;
+    line-height: 1; margin-bottom: 0.5rem;
+  }
+  .testi-card blockquote {
+    font-size: 0.88rem; line-height: 1.75; color: var(--white);
+    font-style: italic; margin-bottom: 1.5rem;
+  }
+  .testi-author { display: flex; gap: 0.8rem; align-items: center; }
+  .testi-avatar {
+    width: 36px; height: 36px; border-radius: 50%;
+    background: var(--gold-dim); border: 1px solid rgba(201,168,76,0.3);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Cormorant Garamond', serif; font-size: 0.95rem; color: var(--gold);
+  }
+  .testi-info { font-size: 0.78rem; }
+  .testi-name { font-weight: 500; color: var(--white); }
+  .testi-role { color: var(--muted); margin-top: 0.1rem; }
+  .testi-company { color: var(--gold); font-size: 0.7rem; margin-top: 0.2rem; }
+
+  /* CTA */
+  .cta-section {
+    text-align: center; padding: 8rem 3.5rem;
+    position: relative; overflow: hidden;
+    max-width: 100%;
+  }
+  .cta-section::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: radial-gradient(ellipse 70% 80% at 50% 50%, rgba(201,168,76,0.08) 0%, transparent 70%);
+  }
+  .cta-section h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 300; line-height: 1.1; margin-bottom: 1.5rem;
+    position: relative;
+  }
+  .cta-section h2 em { font-style: italic; color: var(--gold); }
+  .cta-section p {
+    color: var(--muted); font-size: 1rem; max-width: 480px;
+    margin: 0 auto 2.5rem; line-height: 1.7; position: relative;
+  }
+  .cta-actions { display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; position: relative; }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 3rem 3.5rem;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 1.5rem;
+  }
+  .footer-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 1.1rem; font-weight: 600; letter-spacing: 0.04em;
+  }
+  .footer-logo span { color: var(--gold); }
+  .footer-note { font-size: 0.75rem; color: var(--muted); }
+  .footer-links { display: flex; gap: 1.5rem; }
+  .footer-links a {
+    font-size: 0.75rem; color: var(--muted); text-decoration: none;
+    letter-spacing: 0.06em; text-transform: uppercase;
+    transition: color 0.3s;
+  }
+  .footer-links a:hover { color: var(--gold); }
+
+  /* SCROLL ANIMATIONS */
+  .reveal {
+    opacity: 0; transform: translateY(30px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+  .reveal-delay-1 { transition-delay: 0.1s; }
+  .reveal-delay-2 { transition-delay: 0.2s; }
+  .reveal-delay-3 { transition-delay: 0.3s; }
+  .reveal-delay-4 { transition-delay: 0.4s; }
+
+  /* RESPONSIVE */
+  @media (max-width: 900px) {
+    nav { padding: 1.2rem 1.5rem; }
+    .nav-links { display: none; }
+    section { padding: 5rem 1.5rem; }
+    .what-grid, .market-grid, .usecases-grid { grid-template-columns: 1fr; gap: 2rem; }
+    .solutions-grid, .testimonials-grid { grid-template-columns: 1fr; }
+    .why-grid { grid-template-columns: repeat(2, 1fr); }
+    .steps-track { grid-template-columns: 1fr 1fr; gap: 2rem; }
+    .steps-track::before { display: none; }
+    .solutions-inner, .why-inner, .testimonials-inner { padding: 0 1.5rem; }
+    footer { padding: 2rem 1.5rem; flex-direction: column; text-align: center; }
+    .footer-links { justify-content: center; }
+    .cta-section { padding: 5rem 1.5rem; }
+    .what-visual { height: 300px; }
+    .divider { margin: 0 1.5rem; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="navbar">
+  <a class="nav-logo" href="#">Stitch <span>HQ</span></a>
+  <ul class="nav-links">
+    <li><a href="#what">Platform</a></li>
+    <li><a href="#solutions">Solutions</a></li>
+    <li><a href="#usecases">Use Cases</a></li>
+    <li><a href="#market">Markets</a></li>
+    <li><a href="#how">How It Works</a></li>
+  </ul>
+  <a class="nav-cta" href="https://www.stitch.co/contact" target="_blank">Talk to Stitch →</a>
+</nav>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-eyebrow">Unofficial Resource Guide · stitch.co</div>
+  <h1>The <em>Simplest</em> Way to Build Financial Products</h1>
+  <p class="hero-sub">Stitch is the unified financial infrastructure platform trusted by banks, lenders, and fintech companies across the Middle East — built to launch and scale.</p>
+  <div class="hero-actions">
+    <a class="btn-primary" href="#solutions">Explore Solutions</a>
+    <a class="btn-outline" href="https://www.stitch.co" target="_blank">Visit stitch.co ↗</a>
+  </div>
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">90</div>
+      <div class="stat-label">Days to go live</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">80%</div>
+      <div class="stat-label">Faster implementation</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">150K+</div>
+      <div class="stat-label">End customers served</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">24+</div>
+      <div class="stat-label">Enterprise clients</div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- WHAT IS STITCH -->
+<section id="what">
+  <div class="section-label">What is Stitch</div>
+  <h2 class="section-title">One Platform. Every <em>Financial Product</em> You Need.</h2>
+  <p class="section-sub">Stitch replaces fragmented financial systems with a single, unified infrastructure — so institutions can build and operate any financial product without the complexity.</p>
+
+  <div class="what-grid">
+    <div class="what-visual reveal">
+      <div class="platform-diagram">
+        <div class="platform-row">
+          <div class="platform-chip">Banks</div>
+          <div class="platform-chip">Lenders</div>
+          <div class="platform-chip">Fintechs</div>
+          <div class="platform-chip">Neobanks</div>
+        </div>
+        <div class="platform-line"></div>
+        <div class="platform-core">⬡ &nbsp; Stitch Unified Platform</div>
+        <div class="platform-line" style="background:linear-gradient(to top,var(--gold),transparent)"></div>
+        <div class="platform-row">
+          <div class="platform-chip">Loans</div>
+          <div class="platform-chip">Cards</div>
+          <div class="platform-chip">Deposits</div>
+          <div class="platform-chip">Ledgers</div>
+          <div class="platform-chip">BNPL</div>
+        </div>
+        <div style="height:0.5rem"></div>
+        <div class="platform-row">
+          <div class="platform-chip">Wallets</div>
+          <div class="platform-chip">Onboarding</div>
+          <div class="platform-chip">KYC/KYB</div>
+          <div class="platform-chip">Routing</div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="what-points">
+        <div class="what-point reveal reveal-delay-1">
+          <div class="what-point-num">01</div>
+          <div class="what-point-text">
+            <h4>Unified Infrastructure</h4>
+            <p>Everything from ledgers and transactions to lending and card issuing — all on one platform. No more stitching together multiple vendors.</p>
+          </div>
+        </div>
+        <div class="what-point reveal reveal-delay-2">
+          <div class="what-point-num">02</div>
+          <div class="what-point-text">
+            <h4>Regulatory Compliant by Design</h4>
+            <p>Built to meet SAMA's Cybersecurity Framework and CBUAE guidelines — so clients stay compliant without slowing down.</p>
+          </div>
+        </div>
+        <div class="what-point reveal reveal-delay-3">
+          <div class="what-point-num">03</div>
+          <div class="what-point-text">
+            <h4>Go Live in 90 Days</h4>
+            <p>Where traditional providers take 9–12 months, Stitch gets institutions live in as little as 90 days — 80% faster implementation.</p>
+          </div>
+        </div>
+        <div class="what-point reveal reveal-delay-4">
+          <div class="what-point-num">04</div>
+          <div class="what-point-text">
+            <h4>Built for the Middle East</h4>
+            <p>In-market teams, regional data residency, and local compliance expertise — purpose-built for Saudi Arabia, UAE, Bahrain, and beyond.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SOLUTIONS -->
+<div class="solutions-bg">
+  <div class="solutions-inner" id="solutions">
+    <div class="section-label reveal">Core Solutions</div>
+    <h2 class="section-title reveal">Everything You Need to<br><em>Store, Move & Lend</em></h2>
+    <div class="solutions-grid">
+      <div class="sol-card reveal">
+        <div class="sol-icon">🏦</div>
+        <h3>Ledgers</h3>
+        <p>Real-time financial tracking at scale. Every movement of money recorded, auditable, and reconciled automatically.</p>
+        <span class="sol-tag">Core Infrastructure</span>
+      </div>
+      <div class="sol-card reveal reveal-delay-1">
+        <div class="sol-icon">💳</div>
+        <h3>Cards</h3>
+        <p>Issue and manage physical and virtual cards. Fully configurable spend controls, multi-currency, and digital wallet ready.</p>
+        <span class="sol-tag">Card Issuing</span>
+      </div>
+      <div class="sol-card reveal reveal-delay-2">
+        <div class="sol-icon">🏠</div>
+        <h3>Loans</h3>
+        <p>Modern lending infrastructure — design, launch, and manage credit products fast, compliant, and built to scale.</p>
+        <span class="sol-tag">Lending</span>
+      </div>
+      <div class="sol-card reveal reveal-delay-3">
+        <div class="sol-icon">🏧</div>
+        <h3>Deposits</h3>
+        <p>Simplified deposit infrastructure with fast onboarding, easy account creation, and real-time funding capabilities.</p>
+        <span class="sol-tag">Deposits</span>
+      </div>
+      <div class="sol-card reveal reveal-delay-1">
+        <div class="sol-icon">⚡</div>
+        <h3>Transactions</h3>
+        <p>Scalable transaction processing engine with smart routing to maximize success rates across payment rails.</p>
+        <span class="sol-tag">Payments</span>
+      </div>
+      <div class="sol-card reveal reveal-delay-2">
+        <div class="sol-icon">🔐</div>
+        <h3>Applications</h3>
+        <p>Automated digital onboarding flows with built-in KYC/KYB integrations and consent management — compliant from day one.</p>
+        <span class="sol-tag">Onboarding</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- USE CASES -->
+<section id="usecases">
+  <div class="section-label reveal">Use Cases</div>
+  <h2 class="section-title reveal">What You Can <em>Build</em> with Stitch</h2>
+  <p class="section-sub reveal">From embedded finance to digital banking — Stitch powers it all.</p>
+
+  <div class="usecases-grid">
+    <div class="uc-card reveal">
+      <div class="uc-icon">🛒</div>
+      <div class="uc-content">
+        <h4>Buy Now, Pay Later (BNPL)</h4>
+        <p>Full BNPL infrastructure from customer onboarding to settlement. Launch compliant pay-later products in weeks, not months.</p>
+      </div>
+    </div>
+    <div class="uc-card reveal reveal-delay-1">
+      <div class="uc-icon">📱</div>
+      <div class="uc-content">
+        <h4>Digital Wallets</h4>
+        <p>Multi-currency wallets that handle storage, movement, and conversion of money — with real-time balances and controls.</p>
+      </div>
+    </div>
+    <div class="uc-card reveal reveal-delay-2">
+      <div class="uc-icon">🏢</div>
+      <div class="uc-content">
+        <h4>SME Banking Platforms</h4>
+        <p>Give businesses access to cards, deposits, and loans from a single platform. Perfect for neobanks targeting SMEs.</p>
+      </div>
+    </div>
+    <div class="uc-card reveal reveal-delay-3">
+      <div class="uc-icon">💼</div>
+      <div class="uc-content">
+        <h4>Embedded Finance</h4>
+        <p>Embed financial products directly into non-financial platforms — from marketplaces to HR tools and beyond.</p>
+      </div>
+    </div>
+    <div class="uc-card reveal">
+      <div class="uc-icon">🌐</div>
+      <div class="uc-content">
+        <h4>Virtual Cards</h4>
+        <p>Launch any virtual card product fast — for corporate spend, consumer rewards, or subscription management.</p>
+      </div>
+    </div>
+    <div class="uc-card reveal reveal-delay-1">
+      <div class="uc-icon">⚙️</div>
+      <div class="uc-content">
+        <h4>Legacy Modernization</h4>
+        <p>Replace fragmented legacy banking stacks with a single modern platform — without disrupting existing operations.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY STITCH -->
+<div class="why-bg">
+  <div class="why-inner">
+    <div class="section-label reveal">Why Stitch</div>
+    <h2 class="section-title reveal">The Numbers That <em>Speak</em></h2>
+    <div class="why-grid">
+      <div class="why-card reveal">
+        <div class="why-num">80%</div>
+        <h4>Faster to Launch</h4>
+        <p>Reduce implementation time by 80% vs traditional financial infrastructure providers.</p>
+      </div>
+      <div class="why-card reveal reveal-delay-1">
+        <div class="why-num">90</div>
+        <h4>Days to Go Live</h4>
+        <p>From contract to production in as little as 90 days — vs the 9–12 months industry standard.</p>
+      </div>
+      <div class="why-card reveal reveal-delay-2">
+        <div class="why-num">1</div>
+        <h4>Unified Platform</h4>
+        <p>One integration. One platform. All financial products — no more fragmented systems and vendors.</p>
+      </div>
+      <div class="why-card reveal reveal-delay-3">
+        <div class="why-num">24/7</div>
+        <h4>In-Market Support</h4>
+        <p>Dedicated local teams in every market — not just a support ticket queue.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="section-label reveal">How It Works</div>
+  <h2 class="section-title reveal">From <em>Zero</em> to Financial Product in 5 Steps</h2>
+  <div class="steps-track">
+    <div class="step-item reveal">
+      <div class="step-circle">01</div>
+      <h4>Discovery Call</h4>
+      <p>Define your product, market, and compliance needs with Stitch's team.</p>
+    </div>
+    <div class="step-item reveal reveal-delay-1">
+      <div class="step-circle">02</div>
+      <h4>Platform Setup</h4>
+      <p>Stitch configures your unified infrastructure — ledgers, rails, and APIs.</p>
+    </div>
+    <div class="step-item reveal reveal-delay-2">
+      <div class="step-circle">03</div>
+      <h4>Integration</h4>
+      <p>Connect your product to Stitch via clear docs and intuitive SDKs.</p>
+    </div>
+    <div class="step-item reveal reveal-delay-3">
+      <div class="step-circle">04</div>
+      <h4>Compliance Check</h4>
+      <p>Stay audit-ready with built-in regulatory alignment for your market.</p>
+    </div>
+    <div class="step-item reveal reveal-delay-4">
+      <div class="step-circle">05</div>
+      <h4>Go Live & Scale</h4>
+      <p>Launch in 90 days, then scale with a long-term partner by your side.</p>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- MARKET -->
+<section id="market">
+  <div class="section-label reveal">Markets</div>
+  <h2 class="section-title reveal">Purpose-Built for <em>Your Region</em></h2>
+  <p class="section-sub reveal">Stitch operates with local teams, in-region infrastructure, and deep regulatory knowledge across the Middle East and beyond.</p>
+
+  <div class="market-grid">
+    <div class="region-list reveal">
+      <div class="region-item">
+        <div class="region-flag">🇸🇦</div>
+        <div class="region-name">Saudi Arabia</div>
+        <div class="region-desc">HQ · SAMA Compliant</div>
+        <div class="region-dot"></div>
+      </div>
+      <div class="region-item">
+        <div class="region-flag">🇦🇪</div>
+        <div class="region-name">United Arab Emirates</div>
+        <div class="region-desc">CBUAE Guidelines</div>
+        <div class="region-dot"></div>
+      </div>
+      <div class="region-item">
+        <div class="region-flag">🇧🇭</div>
+        <div class="region-name">Bahrain</div>
+        <div class="region-desc">Regional Hub</div>
+        <div class="region-dot"></div>
+      </div>
+      <div class="region-item">
+        <div class="region-flag">🇪🇬</div>
+        <div class="region-name">Egypt</div>
+        <div class="region-desc">Growing Market</div>
+        <div class="region-dot"></div>
+      </div>
+      <div class="region-item">
+        <div class="region-flag">🌏</div>
+        <div class="region-name">Southeast Asia</div>
+        <div class="region-desc">Indonesia · Malaysia · Philippines</div>
+        <div class="region-dot"></div>
+      </div>
+      <div class="region-item">
+        <div class="region-flag">🇮🇳</div>
+        <div class="region-name">India</div>
+        <div class="region-desc">Engineering Hub</div>
+        <div class="region-dot"></div>
+      </div>
+    </div>
+
+    <div class="compliance-box reveal reveal-delay-2">
+      <h4>Regulatory & Compliance Framework</h4>
+      <div class="compliance-items">
+        <div class="compliance-item">
+          <div class="ci-check">✓</div>
+          <p><strong>SAMA CSF</strong> — Fully aligned with Saudi Arabia's Cybersecurity Framework for financial institutions.</p>
+        </div>
+        <div class="compliance-item">
+          <div class="ci-check">✓</div>
+          <p><strong>CBUAE Guidelines</strong> — Meets the Central Bank of UAE's regulatory requirements for fintech operations.</p>
+        </div>
+        <div class="compliance-item">
+          <div class="ci-check">✓</div>
+          <p><strong>Data Residency</strong> — In-region data hosting to meet local data sovereignty laws in every market.</p>
+        </div>
+        <div class="compliance-item">
+          <div class="ci-check">✓</div>
+          <p><strong>KYC/KYB Integration</strong> — Built-in customer verification and consent management from day one.</p>
+        </div>
+        <div class="compliance-item">
+          <div class="ci-check">✓</div>
+          <p><strong>In-Market Teams</strong> — Local expertise to guide implementation and navigate external stakeholders.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<div class="testimonials-bg" id="testimonials">
+  <div class="testimonials-inner">
+    <div class="section-label reveal">Client Voices</div>
+    <h2 class="section-title reveal">Industry Leaders <em>Trust</em> Stitch</h2>
+    <div class="testimonials-grid">
+      <div class="testi-card reveal">
+        <div class="testi-quote">"</div>
+        <blockquote>Working with Stitch changed how we operate. We moved from a fragmented setup to an integrated, automated platform in under a month.</blockquote>
+        <div class="testi-author">
+          <div class="testi-avatar">F</div>
+          <div class="testi-info">
+            <div class="testi-name">Fahad Al Balooshi</div>
+            <div class="testi-role">VP, Investment Banking</div>
+            <div class="testi-company">MBA, CFA, PRM</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card reveal reveal-delay-1">
+        <div class="testi-quote">"</div>
+        <blockquote>Cards are no longer an add-on — they're the infrastructure that powers business operations globally. Stitch gives us the foundation to issue, control, and scale.</blockquote>
+        <div class="testi-author">
+          <div class="testi-avatar">K</div>
+          <div class="testi-info">
+            <div class="testi-name">Kashif Khan</div>
+            <div class="testi-role">Founder & CEO</div>
+            <div class="testi-company">Peko</div>
+          </div>
+        </div>
+      </div>
+      <div class="testi-card reveal reveal-delay-2">
+        <div class="testi-quote">"</div>
+        <blockquote>We felt a genuine difference from the very first meeting. Stitch helped us make sense of what had always felt like a complicated process.</blockquote>
+        <div class="testi-author">
+          <div class="testi-avatar">I</div>
+          <div class="testi-info">
+            <div class="testi-name">Ibrahim Yahya Alkinany</div>
+            <div class="testi-role">Chief Information Officer</div>
+            <div class="testi-company">Financial Institution</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CTA -->
+<div class="cta-section">
+  <h2>Ready to Build the<br><em>Future of Finance?</em></h2>
+  <p>Join the institutions already building on Stitch's unified platform — and go live in 90 days.</p>
+  <div class="cta-actions">
+    <a class="btn-primary" href="https://www.stitch.co/contact" target="_blank">Talk to Stitch →</a>
+    <a class="btn-outline" href="https://www.stitch.co/careers" target="_blank">Join the Team</a>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-logo">Stitch <span>Resource Hub</span></div>
+  <div class="footer-note">An unofficial resource guide. All information sourced from stitch.co</div>
+  <div class="footer-links">
+    <a href="https://www.stitch.co" target="_blank">stitch.co</a>
+    <a href="https://www.stitch.co/careers" target="_blank">Careers</a>
+    <a href="https://twitter.com/StitchHQ" target="_blank">Twitter</a>
+  </div>
+</footer>
+
+<script>
+  // NAV SCROLL
+  const nav = document.getElementById('navbar');
+  window.addEventListener('scroll', () => {
+    nav.classList.toggle('scrolled', window.scrollY > 50);
+  });
+
+  // REVEAL ON SCROLL
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+  reveals.forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
